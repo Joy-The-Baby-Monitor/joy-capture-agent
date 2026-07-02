@@ -13,6 +13,8 @@ path = "src/main.rs"
 [dependencies]
 joy-core.workspace = true
 joy-capture.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+tracing-subscriber.workspace = true
 joy-analysis.workspace = true
 joy-media.workspace = true
 joy-control.workspace = true

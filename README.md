@@ -10,8 +10,14 @@ Written in Rust, it targets the Pi (production) but also builds and runs on
 macOS (development), with a `--simulate` mode so the pipeline can be exercised
 with no camera or microphone attached.
 
-> Status: early scaffold. The crate structure is in place; subsystems are being
-> built out along the roadmap below.
+> Status: roadmap step 1 (skeleton) in progress. The capture HAL is in place —
+> `VideoSource`/`AudioSource` traits, simulate backends, and hardware backends
+> (nokhwa camera, cpal microphone) — with a probe mode in `joy-agentd`:
+>
+> ```sh
+> cargo run -p joy-agentd -- --simulate   # no hardware needed
+> cargo run -p joy-agentd                 # real camera + microphone
+> ```
 
 ## Workspace layout
 

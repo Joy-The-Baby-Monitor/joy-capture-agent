@@ -6,5 +6,22 @@ edition.workspace = true
 rust-version.workspace = true
 repository.workspace = true
 
+[features]
+default = ["camera", "microphone"]
+# Real-hardware video backend (nokhwa: AVFoundation on macOS, V4L2 on Linux).
+camera = ["dep:nokhwa"]
+# Real-hardware audio backend (cpal: CoreAudio on macOS, ALSA on Linux).
+microphone = ["dep:cpal", "dep:ringbuf"]
+
 [dependencies]
 joy-core.workspace = true
+bytes.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+nokhwa = { workspace = true, optional = true }
+cpal = { workspace = true, optional = true }
+ringbuf = { workspace = true, optional = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
