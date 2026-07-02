@@ -1,0 +1,10 @@
+[package]
+name = "joy-capture"
+description = "Capture hardware abstraction layer: VideoSource/AudioSource traits and platform backends."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+
+[dependencies]
+joy-core.workspace = true

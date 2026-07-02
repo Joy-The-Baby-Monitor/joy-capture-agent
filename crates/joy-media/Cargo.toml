@@ -1,0 +1,10 @@
+[package]
+name = "joy-media"
+description = "Media plane: encoding (or UVC passthrough), WebRTC peer management, and signaling."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+
+[dependencies]
+joy-core.workspace = true

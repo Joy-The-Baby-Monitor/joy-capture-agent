@@ -1,0 +1,19 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.91"
+repository = "https://github.com/joy-org/joy-capture-agent"
+
+[workspace.dependencies]
+joy-core = { path = "crates/joy-core" }
+joy-capture = { path = "crates/joy-capture" }
+joy-analysis = { path = "crates/joy-analysis" }
+joy-media = { path = "crates/joy-media" }
+joy-control = { path = "crates/joy-control" }
+joy-provision = { path = "crates/joy-provision" }
+joy-ext = { path = "crates/joy-ext" }
+joy-store = { path = "crates/joy-store" }

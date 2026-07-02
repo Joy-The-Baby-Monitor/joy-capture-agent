@@ -1,0 +1,9 @@
+[package]
+name = "joy-core"
+description = "Shared vocabulary for the Joy Capture Agent: event model, traits, pipeline plumbing, and config types."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+
+[dependencies]

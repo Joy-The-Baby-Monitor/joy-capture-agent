@@ -1,0 +1,10 @@
+[package]
+name = "joy-ext"
+description = "Extension host: embeds Python via PyO3 and defines the extension ABI/contract."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+
+[dependencies]
+joy-core.workspace = true

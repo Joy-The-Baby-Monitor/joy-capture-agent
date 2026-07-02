@@ -1,0 +1,21 @@
+[package]
+name = "joy-agentd"
+description = "The Joy Capture Agent binary: wires every crate together, supervises the pipeline, and hosts the CLI/daemon."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "joy-agentd"
+path = "src/main.rs"
+
+[dependencies]
+joy-core.workspace = true
+joy-capture.workspace = true
+joy-analysis.workspace = true
+joy-media.workspace = true
+joy-control.workspace = true
+joy-provision.workspace = true
+joy-ext.workspace = true
+joy-store.workspace = true

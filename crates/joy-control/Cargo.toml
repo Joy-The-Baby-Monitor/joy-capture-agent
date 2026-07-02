@@ -1,0 +1,10 @@
+[package]
+name = "joy-control"
+description = "Control plane: request/response RPC, capability negotiation, settings, and event push."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+
+[dependencies]
+joy-core.workspace = true
