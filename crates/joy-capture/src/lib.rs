@@ -49,8 +49,7 @@ pub use audio::{
 pub use error::{CaptureError, Result};
 pub use simulate::{SimulatedAudioSource, SimulatedVideoSource};
 pub use video::{
-    PixelFormat, VIDEO_CHANNEL_CAPACITY, VideoCaps, VideoConfig, VideoFrame, VideoMode,
-    VideoSource,
+    PixelFormat, VIDEO_CHANNEL_CAPACITY, VideoCaps, VideoConfig, VideoFrame, VideoMode, VideoSource,
 };
 
 #[cfg(feature = "camera")]

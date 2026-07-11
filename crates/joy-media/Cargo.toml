@@ -8,3 +8,18 @@ repository.workspace = true
 
 [dependencies]
 joy-core.workspace = true
+joy-capture.workspace = true
+bytes.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["macros"] }
+tracing.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+webrtc.workspace = true
+openh264.workspace = true
+opus.workspace = true
+zune-jpeg.workspace = true
+axum.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "time"] }

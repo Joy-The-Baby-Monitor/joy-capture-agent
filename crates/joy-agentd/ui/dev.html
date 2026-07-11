@@ -1,0 +1,104 @@
+<!doctype html>
+<!--
+  Joy dev/test viewer.
+
+  A minimal reference client for the agent's v1 signaling protocol
+  (JSON over WebSocket at /signal — see joy-media::signaling):
+
+    1. open the WebSocket
+    2. create an RTCPeerConnection with two recvonly transceivers
+    3. send {"type":"offer","v":1,"sdp":...}
+    4. apply the complete {"type":"answer",...} that comes back
+    5. trickle local candidates as {"type":"candidate",...}
+
+  Served only when the agent is built with the `dev-ui` feature.
+  Recv-only WebRTC needs no secure context, so plain http:// works.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Joy — live view (dev)</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 2rem; background: #14141c; color: #e8e8f0; }
+  h1 { font-size: 1.2rem; font-weight: 600; }
+  video { width: 100%; max-width: 720px; background: #000; border-radius: 8px; display: block; }
+  #bar { display: flex; gap: 1rem; align-items: center; margin: 0.8rem 0; max-width: 720px; }
+  button { font: inherit; padding: 0.4rem 1.1rem; border-radius: 6px; border: 1px solid #555; background: #2a2a38; color: inherit; cursor: pointer; }
+  button:hover { background: #3a3a4c; }
+  #status { color: #9a9ab0; font-size: 0.9rem; margin-left: auto; }
+</style>
+</head>
+<body>
+<h1>Joy — live view (dev)</h1>
+<video id="view" autoplay playsinline muted></video>
+<div id="bar">
+  <button id="mute">Unmute</button>
+  <span id="status">connecting…</span>
+</div>
+<script>
+  const view = document.getElementById("view");
+  const status = document.getElementById("status");
+  const muteButton = document.getElementById("mute");
+
+  // Audible playback requires a user gesture; the stream starts muted so
+  // autoplay is always allowed.
+  muteButton.onclick = () => {
+    view.muted = !view.muted;
+    muteButton.textContent = view.muted ? "Unmute" : "Mute";
+  };
+
+  const ws = new WebSocket(`ws://${location.host}/signal`);
+  const pc = new RTCPeerConnection(); // LAN only: no ICE servers
+
+  pc.addTransceiver("video", { direction: "recvonly" });
+  pc.addTransceiver("audio", { direction: "recvonly" });
+
+  // Both tracks share one stream id, so a single assignment wires up A+V.
+  pc.ontrack = (e) => { view.srcObject = e.streams[0]; };
+
+  view.addEventListener("playing", () => {
+    console.log(`joy video playing: ${view.videoWidth}x${view.videoHeight}`);
+  });
+
+  pc.onconnectionstatechange = () => {
+    status.textContent = pc.connectionState;
+    console.log("joy connection state:", pc.connectionState);
+  };
+
+  pc.onicecandidate = (e) => {
+    if (e.candidate && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        type: "candidate",
+        v: 1,
+        candidate: e.candidate.candidate,
+        sdp_mid: e.candidate.sdpMid,
+        sdp_mline_index: e.candidate.sdpMLineIndex,
+      }));
+    }
+  };
+
+  ws.onopen = async () => {
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    ws.send(JSON.stringify({ type: "offer", v: 1, sdp: offer.sdp }));
+  };
+
+  ws.onmessage = async (event) => {
+    const msg = JSON.parse(event.data);
+    if (msg.type === "answer") {
+      await pc.setRemoteDescription({ type: "answer", sdp: msg.sdp });
+    } else if (msg.type === "error") {
+      status.textContent = `agent error: ${msg.code} — ${msg.message}`;
+      console.error("signaling error", msg);
+    }
+  };
+
+  ws.onclose = () => {
+    if (pc.connectionState !== "connected") {
+      status.textContent = "signaling closed";
+    }
+  };
+</script>
+</body>
+</html>

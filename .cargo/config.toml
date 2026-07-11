@@ -1,0 +1,8 @@
+# Workspace-level build environment.
+#
+# CMAKE_POLICY_VERSION_MINIMUM: `audiopus_sys` (the `opus` crate's backend)
+# vendors a libopus whose CMakeLists.txt predates CMake 4's policy floor;
+# without this override CMake 4.x refuses to configure it. Harmless on
+# CMake 3.x hosts.
+[env]
+CMAKE_POLICY_VERSION_MINIMUM = "3.5"

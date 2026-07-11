@@ -10,11 +10,18 @@ repository.workspace = true
 name = "joy-agentd"
 path = "src/main.rs"
 
+[features]
+# Embeds the browser dev/test page and serves it at `GET /` in serve mode.
+# Development-only: production builds omit the feature and the page (and its
+# route) are compiled out entirely.
+dev-ui = []
+
 [dependencies]
 joy-core.workspace = true
-joy-capture.workspace = true
-tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+joy-capture = { workspace = true, features = ["camera", "microphone"] }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "signal", "net"] }
 tracing-subscriber.workspace = true
+axum.workspace = true
 joy-analysis.workspace = true
 joy-media.workspace = true
 joy-control.workspace = true

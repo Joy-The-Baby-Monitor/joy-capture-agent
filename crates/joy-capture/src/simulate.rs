@@ -20,8 +20,7 @@ use crate::audio::{
 };
 use crate::error::{CaptureError, Result};
 use crate::video::{
-    PixelFormat, VIDEO_CHANNEL_CAPACITY, VideoCaps, VideoConfig, VideoFrame, VideoMode,
-    VideoSource,
+    PixelFormat, VIDEO_CHANNEL_CAPACITY, VideoCaps, VideoConfig, VideoFrame, VideoMode, VideoSource,
 };
 
 /// Frequency of the simulated audio tone.
@@ -203,7 +202,8 @@ async fn synth_loop(cfg: AudioConfig, tx: broadcast::Sender<AudioChunk>) {
             samples[frame * channels..(frame + 1) * channels].fill(value);
         }
 
-        let ts = anchor + Duration::from_nanos(frames_emitted * 1_000_000_000 / cfg.sample_rate as u64);
+        let ts =
+            anchor + Duration::from_nanos(frames_emitted * 1_000_000_000 / cfg.sample_rate as u64);
         frames_emitted += cfg.chunk_frames as u64;
 
         let _ = tx.send(AudioChunk {

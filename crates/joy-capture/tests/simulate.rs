@@ -7,8 +7,8 @@
 use std::time::Duration;
 
 use joy_capture::{
-    AudioConfig, AudioSource, PixelFormat, SimulatedAudioSource, SimulatedVideoSource,
-    VideoConfig, VideoSource,
+    AudioConfig, AudioSource, PixelFormat, SimulatedAudioSource, SimulatedVideoSource, VideoConfig,
+    VideoSource,
 };
 
 /// A small, fast config so tests finish quickly.
@@ -57,7 +57,9 @@ async fn video_frames_have_correct_shape_and_monotonic_timestamps() {
 
 #[tokio::test]
 async fn consecutive_video_frames_differ() {
-    let source = SimulatedVideoSource::open(&test_video_config()).await.unwrap();
+    let source = SimulatedVideoSource::open(&test_video_config())
+        .await
+        .unwrap();
     let mut rx = source.subscribe();
 
     let a = rx.recv().await.unwrap();
@@ -88,7 +90,9 @@ async fn video_rejects_zero_config() {
 
 #[tokio::test]
 async fn late_subscriber_still_receives_frames() {
-    let source = SimulatedVideoSource::open(&test_video_config()).await.unwrap();
+    let source = SimulatedVideoSource::open(&test_video_config())
+        .await
+        .unwrap();
     tokio::time::sleep(Duration::from_millis(100)).await;
 
     let mut rx = source.subscribe();
@@ -105,9 +109,8 @@ async fn audio_chunks_have_exact_shape_and_derived_timestamps() {
     let source = SimulatedAudioSource::open(&cfg).await.unwrap();
     let mut rx = source.subscribe();
 
-    let expected_delta = Duration::from_nanos(
-        cfg.chunk_frames as u64 * 1_000_000_000 / cfg.sample_rate as u64,
-    );
+    let expected_delta =
+        Duration::from_nanos(cfg.chunk_frames as u64 * 1_000_000_000 / cfg.sample_rate as u64);
 
     let mut last_ts = None;
     for _ in 0..5 {
@@ -137,7 +140,9 @@ async fn audio_chunks_have_exact_shape_and_derived_timestamps() {
 
 #[tokio::test]
 async fn audio_tone_is_audible() {
-    let source = SimulatedAudioSource::open(&test_audio_config()).await.unwrap();
+    let source = SimulatedAudioSource::open(&test_audio_config())
+        .await
+        .unwrap();
     let mut rx = source.subscribe();
 
     let chunk = rx.recv().await.unwrap();

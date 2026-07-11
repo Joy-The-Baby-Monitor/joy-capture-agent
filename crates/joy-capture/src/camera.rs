@@ -28,8 +28,7 @@ use tokio::sync::{broadcast, oneshot};
 
 use crate::error::{CaptureError, Result};
 use crate::video::{
-    PixelFormat, VIDEO_CHANNEL_CAPACITY, VideoCaps, VideoConfig, VideoFrame, VideoMode,
-    VideoSource,
+    PixelFormat, VIDEO_CHANNEL_CAPACITY, VideoCaps, VideoConfig, VideoFrame, VideoMode, VideoSource,
 };
 
 /// Consecutive read failures tolerated before the capture thread gives up
@@ -189,7 +188,10 @@ fn open_camera(cfg: &VideoConfig) -> Result<Camera> {
 
     let mut last_error = None;
     for format_type in attempts {
-        match Camera::new(index.clone(), RequestedFormat::new::<RgbFormat>(format_type)) {
+        match Camera::new(
+            index.clone(),
+            RequestedFormat::new::<RgbFormat>(format_type),
+        ) {
             Ok(camera) => return Ok(camera),
             Err(e) => last_error = Some(e),
         }

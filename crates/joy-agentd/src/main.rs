@@ -1,18 +1,29 @@
 //! The Joy Capture Agent daemon.
 //!
 //! `joy-agentd` is the binary that wires every crate into a running agent.
-//! At roadmap step 1 it hosts the **capture probe**: it opens a video and an
-//! audio source (real hardware by default, synthetic with `--simulate`),
-//! subscribes to both fan-outs, and reports throughput and timestamp health —
-//! the proof that the HAL and its time discipline work on this machine.
+//! It currently hosts two modes:
+//!
+//! - **Capture probe** (default, roadmap step 1): opens a video and an audio
+//!   source (real hardware by default, synthetic with `--simulate`),
+//!   subscribes to both fan-outs, and reports throughput and timestamp
+//!   health — the proof that the HAL and its time discipline work on this
+//!   machine.
+//! - **Serve** (`--serve`, roadmap step 2): the live-view pipeline — encodes
+//!   capture to H.264/Opus and streams over WebRTC to clients that connect
+//!   via the signaling WebSocket. Built with `--features dev-ui`, it also
+//!   serves a browser test page at `/`.
 //!
 //! ```text
 //! joy-agentd [--simulate] [--duration <secs>]
+//! joy-agentd --serve [--simulate] [--listen <addr:port>]
 //! ```
 //!
-//! Later milestones replace this probe with the supervised pipeline (encoder,
-//! analyzers, WebRTC, control plane).
+//! Later milestones grow serve mode into the supervised pipeline (analyzers,
+//! control plane, provisioning).
 
+mod serve;
+
+use std::net::SocketAddr;
 use std::process::ExitCode;
 use std::time::{Duration, Instant};
 
@@ -22,22 +33,29 @@ use joy_capture::{
 };
 use tokio::sync::broadcast;
 
-/// Parsed command-line options for the capture probe.
+const USAGE: &str = "usage: joy-agentd [--simulate] [--duration <secs>]\n       joy-agentd --serve [--simulate] [--listen <addr:port>]";
+
+/// Parsed command-line options.
 struct Options {
     simulate: bool,
     duration: Duration,
+    serve: bool,
+    listen: SocketAddr,
 }
 
 fn parse_args() -> Result<Options, String> {
     let mut options = Options {
         simulate: false,
         duration: Duration::from_secs(5),
+        serve: false,
+        listen: SocketAddr::from(([0, 0, 0, 0], 8080)),
     };
 
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--simulate" => options.simulate = true,
+            "--serve" => options.serve = true,
             "--duration" => {
                 let value = args.next().ok_or("--duration requires a value")?;
                 let secs: u64 = value
@@ -45,8 +63,14 @@ fn parse_args() -> Result<Options, String> {
                     .map_err(|_| format!("invalid --duration value: {value}"))?;
                 options.duration = Duration::from_secs(secs);
             }
+            "--listen" => {
+                let value = args.next().ok_or("--listen requires a value")?;
+                options.listen = value
+                    .parse()
+                    .map_err(|_| format!("invalid --listen address: {value} (want addr:port)"))?;
+            }
             "--help" | "-h" => {
-                return Err("usage: joy-agentd [--simulate] [--duration <secs>]".into());
+                return Err(USAGE.into());
             }
             other => return Err(format!("unknown argument: {other}")),
         }
@@ -68,16 +92,22 @@ async fn main() -> ExitCode {
         }
     };
 
-    let result = if options.simulate {
-        run_simulated_probe(options.duration).await
+    let (result, mode) = if options.serve {
+        let serve_options = serve::ServeOptions {
+            simulate: options.simulate,
+            listen: options.listen,
+        };
+        (serve::run(serve_options).await, "serve")
+    } else if options.simulate {
+        (run_simulated_probe(options.duration).await, "capture probe")
     } else {
-        run_hardware_probe(options.duration).await
+        (run_hardware_probe(options.duration).await, "capture probe")
     };
 
     match result {
         Ok(()) => ExitCode::SUCCESS,
         Err(message) => {
-            eprintln!("capture probe failed: {message}");
+            eprintln!("{mode} failed: {message}");
             ExitCode::FAILURE
         }
     }
@@ -170,7 +200,11 @@ impl std::fmt::Display for StreamStats {
             self.label,
             self.count,
             self.lagged,
-            if self.monotonic { "monotonic" } else { "REGRESSED" },
+            if self.monotonic {
+                "monotonic"
+            } else {
+                "REGRESSED"
+            },
             self.detail,
         )
     }

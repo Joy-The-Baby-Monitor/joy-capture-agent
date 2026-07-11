@@ -18,9 +18,16 @@ tracing-subscriber = "0.3"
 nokhwa = { version = "0.10", features = ["input-native"] }
 cpal = "0.15"
 ringbuf = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+webrtc = "0.17"
+openh264 = "0.9"
+opus = "0.3"
+zune-jpeg = "0.5"
+axum = { version = "0.8", default-features = false, features = ["ws", "http1", "tokio"] }
 
 joy-core = { path = "crates/joy-core" }
-joy-capture = { path = "crates/joy-capture" }
+joy-capture = { path = "crates/joy-capture", default-features = false }
 joy-analysis = { path = "crates/joy-analysis" }
 joy-media = { path = "crates/joy-media" }
 joy-control = { path = "crates/joy-control" }

@@ -10,14 +10,24 @@ Written in Rust, it targets the Pi (production) but also builds and runs on
 macOS (development), with a `--simulate` mode so the pipeline can be exercised
 with no camera or microphone attached.
 
-> Status: roadmap step 1 (skeleton) in progress. The capture HAL is in place —
-> `VideoSource`/`AudioSource` traits, simulate backends, and hardware backends
-> (nokhwa camera, cpal microphone) — with a probe mode in `joy-agentd`:
+> Status: roadmap step 2 (local live view) complete. The agent captures,
+> encodes (H.264/Opus in software), and streams live A/V over WebRTC to any
+> client that connects through the JSON-over-WebSocket signaling endpoint.
 >
 > ```sh
+> # live view with the browser dev page (open http://localhost:8080)
+> cargo run -p joy-agentd --features dev-ui -- --serve --simulate
+> cargo run -p joy-agentd --features dev-ui -- --serve   # real camera + mic
+>
+> # capture probe (roadmap step 1 health check)
 > cargo run -p joy-agentd -- --simulate   # no hardware needed
 > cargo run -p joy-agentd                 # real camera + microphone
 > ```
+>
+> The `dev-ui` feature embeds a single-file browser test client served at
+> `/`; production builds omit the feature and the page is compiled out. The
+> signaling protocol itself (`/signal`) is a permanent, versioned surface —
+> see `joy-media::signaling` for the message contract.
 
 ## Workspace layout
 
@@ -45,12 +55,24 @@ First-party Python extensions live under [`extensions/`](extensions/).
 cargo build --workspace
 ```
 
-Requires a recent stable Rust toolchain (edition 2024, Rust 1.91+).
+Requires a recent stable Rust toolchain (edition 2024, Rust 1.91+) and
+**cmake** (`brew install cmake` / `apt install cmake`) — the `opus` crate
+builds its bundled libopus with it. The H.264 encoder (openh264) is compiled
+from vendored Cisco source by `cc` with no extra tooling.
+
+> Licensing note: building openh264 from source means the binary does **not**
+> carry Cisco's royalty coverage (that applies only to Cisco's prebuilt
+> binaries). Fine for development and self-built kits; revisit before
+> distributing prebuilt agent binaries.
+
+Cross-compiling for the Pi (`aarch64-unknown-linux-gnu`) is expected to work
+via [`cross`](https://github.com/cross-rs/cross) — both native deps build
+under its Docker toolchains — but has not been exercised yet.
 
 ## Roadmap
 
-1. **Skeleton** — video + audio capture on Mac and Pi; `--simulate` mode.
-2. **Local live view** — WebRTC peer + signaling; a LAN client sees live A/V.
+1. **Skeleton** — video + audio capture on Mac and Pi; `--simulate` mode. ✅
+2. **Local live view** — WebRTC peer + signaling; a LAN client sees live A/V. ✅
 3. **Event bus + analysis** — motion and sound publishing `core.*` events.
 4. **Control plane + settings** — capabilities, get/set config, subscriptions.
 5. **Provisioning + local auth** — BLE onboarding and the device trust model.
